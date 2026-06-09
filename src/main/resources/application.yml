@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: swagger-jwt-api
+
+app:
+  jwt:
+    secret: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    expiration-ms: 3600000

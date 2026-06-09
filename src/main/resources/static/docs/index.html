@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Swagger JWT Docs</title>
+    <link rel="stylesheet" type="text/css" href="/swagger-ui/swagger-ui.css" />
+    <style>
+        body {
+            margin: 0;
+        }
+        .topbar-extra {
+            padding: 12px 20px;
+            background: #173647;
+            color: white;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            align-items: center;
+        }
+        .topbar-extra button {
+            padding: 8px 12px;
+            border: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="topbar-extra">
+    <span>Swagger protegido con JWT</span>
+    <button id="logoutBtn">Cerrar sesion</button>
+</div>
+<div id="swagger-ui"></div>
+
+<script src="/swagger-ui/swagger-ui-bundle.js"></script>
+<script src="/swagger-ui/swagger-ui-standalone-preset.js"></script>
+<script>
+    const token = localStorage.getItem('swagger_jwt');
+
+    if (!token) {
+        window.location.href = '/docs/login.html';
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('swagger_jwt');
+        window.location.href = '/docs/login.html';
+    });
+
+    const ui = SwaggerUIBundle({
+        url: '/v3/api-docs',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIStandalonePreset
+        ],
+        layout: 'BaseLayout',
+        persistAuthorization: true,
+        requestInterceptor: (request) => {
+            request.headers = request.headers || {};
+            request.headers.Authorization = 'Bearer ' + token;
+            return request;
+        },
+        onComplete: () => {
+            ui.preauthorizeApiKey('bearerAuth', token);
+        }
+    });
+</script>
+</body>
+</html>
