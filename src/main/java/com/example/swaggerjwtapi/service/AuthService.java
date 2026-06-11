@@ -19,9 +19,11 @@ public class AuthService implements UserDetailsService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository,
-                       JwtService jwtService,
-                       PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UserRepository userRepository,
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -29,24 +31,43 @@ public class AuthService implements UserDetailsService {
 
     public LoginResponse login(LoginRequest request) {
         AppUser user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new BadCredentialsException("Credentials are not valid"));
+                .orElseThrow(this::invalidCredentials);
 
-        if (!passwordEncoder.matches(request.password(), user.password())) {
-            throw new BadCredentialsException("Credentials are not valid");
+        if (!passwordEncoder.matches(
+                request.password(),
+                user.password()
+        )) {
+            throw invalidCredentials();
         }
 
-        String token = jwtService.generateToken(user.username(),  user.roles());
-        return new LoginResponse(token, "Bearer ", jwtService.getExpirationSeconds());
+        String accessToken = jwtService.generateToken(
+                user.username(),
+                user.roles()
+        );
+
+        return new LoginResponse(
+                accessToken,
+                "Bearer ",
+                jwtService.getExpirationSeconds()
+        );
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) {
         AppUser user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found")
+                );
 
         return User.withUsername(user.username())
                 .password(user.password())
                 .authorities(user.roles().toArray(String[]::new))
                 .build();
+    }
+
+    private BadCredentialsException invalidCredentials() {
+        return new BadCredentialsException(
+                "Username or password is invalid"
+        );
     }
 }

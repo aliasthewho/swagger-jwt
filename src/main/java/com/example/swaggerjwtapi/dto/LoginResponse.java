@@ -1,7 +1,7 @@
 package com.example.swaggerjwtapi.dto;
 
 public record LoginResponse(
-        String token,
-        String type,
+        String accessToken,
+        String tokenType,
         long expiresIn
 ) {}
