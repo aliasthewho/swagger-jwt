@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -25,28 +26,48 @@ public class ProductController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public List<Product> findAll() {
         return productService.findAll();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER', 'ADMIN')")
     public Product findById(@PathVariable Long id) {
         return productService.findById(id);
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Product create(@Valid @RequestBody ProductRequest request) {
-        Product product = new Product(null, request.name, request.description,  request.price);
+        Product product = new Product(
+                null,
+                request.name,
+                request.description,
+                request.price
+        );
+
         return productService.create(product);
     }
 
     @PutMapping("/{id}")
-    public Product update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
-        Product product = new Product(id, request.name,  request.description,  request.price);
+    @PreAuthorize("hasRole('ADMIN')")
+    public Product update(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest request
+    ) {
+        Product product = new Product(
+                id,
+                request.name,
+                request.description,
+                request.price
+        );
+
         return productService.update(id, product);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         productService.delete(id);
     }
