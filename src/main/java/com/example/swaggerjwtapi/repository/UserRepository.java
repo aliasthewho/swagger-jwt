@@ -15,16 +15,26 @@ public class UserRepository {
     private final Map<String, AppUser> users = new ConcurrentHashMap<>();
 
     public UserRepository(PasswordEncoder passwordEncoder) {
-        users.put("admin", new AppUser(
+        users.put(
                 "admin",
-                passwordEncoder.encode("12345"),
-                List.of("ROLE_ADMIN")
-        ));
-        users.put("user", new AppUser(
+                new AppUser(
+                        1L,
+                        "admin",
+                        passwordEncoder.encode("12345"),
+                        List.of("ROLE_ADMIN")
+                )
+        );
+
+        users.put(
                 "user",
-                passwordEncoder.encode("12345"),
-                List.of("ROLE_USER")
-        ));
+                new AppUser(
+                        2L,
+                "user",
+                    passwordEncoder.encode("12345"),
+                    List.of("ROLE_USER")
+                )
+        );
+
     }
 
     public Optional<AppUser> findByUsername(String username) {

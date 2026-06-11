@@ -1,17 +1,18 @@
 package com.example.swaggerjwtapi.controller;
 
+import com.example.swaggerjwtapi.dto.CurrentUserResponse;
 import com.example.swaggerjwtapi.dto.LoginRequest;
 import com.example.swaggerjwtapi.dto.LoginResponse;
 import com.example.swaggerjwtapi.service.AuthService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final String BEARER_PREFIX = "Bearer ";
 
     private final AuthService authService;
 
@@ -22,5 +23,15 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @GetMapping("/me")
+    public CurrentUserResponse currentUser(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader
+    ) {
+           String accessToken = authorizationHeader.substring(
+                   BEARER_PREFIX.length()
+           );
+           return authService.getCurrentUser(accessToken);
     }
 }
