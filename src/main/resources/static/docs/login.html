@@ -68,7 +68,7 @@
             }
 
             const data = await response.json();
-            localStorage.setItem('swagger_jwt', data.token);
+            localStorage.setItem('swagger_jwt', data.accessToken);
             window.location.href = '/docs/index.html';
         } catch (error) {
             errorBox.textContent = error.message;
