@@ -1,5 +1,7 @@
 package com.example.swaggerjwtapi.service;
 
+import com.example.swaggerjwtapi.dto.CurrentUserResponse;
+import com.example.swaggerjwtapi.model.AppUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -34,24 +36,40 @@ public class JwtService {
         this.issuer = issuer;
     }
 
-    public String generateToken(String username, List<String> roles) {
+    public String generateAccessToken(AppUser user) {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plusMillis(expirationMs);
 
         return Jwts.builder()
                 .id(UUID.randomUUID().toString())
-                .subject(username)
+                .subject(user.username())
                 .issuer(issuer)
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(expiresAt))
+                .claim("user_id", user.id())
+                .claim("roles", user.roles())
                 .claim("token_type", "access")
-                .claim("roles", roles)
                 .signWith(signingKey, Jwts.SIG.HS256)
                 .compact();
     }
 
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public CurrentUserResponse extractCurrentUser(String token) {
+        Claims claims = extractAllClaims(token);
+
+        return new CurrentUserResponse(
+                claims.get("user_id", Long.class),
+                claims.getSubject(),
+                extractRoles(claims),
+                claims.get("token_type", String.class),
+                claims.getIssuer(),
+                claims.getId(),
+                claims.getIssuedAt().toInstant(),
+                claims.getExpiration().toInstant()
+        );
     }
 
     public boolean isTokenValid(
@@ -61,8 +79,10 @@ public class JwtService {
         Claims claims = extractAllClaims(token);
 
         return claims.getSubject().equals(userDetails.getUsername())
-                && claims.getIssuer().equals(issuer)
-                && "access".equals(claims.get("token_type", String.class))
+                && issuer.equals(claims.getIssuer())
+                && "access".equals(
+                        claims.get("token_type", String.class)
+                )
                 && claims.getExpiration().after(new Date());
     }
 
@@ -70,9 +90,22 @@ public class JwtService {
         return expirationMs / 1000;
     }
 
+    private List<String> extractRoles(Claims claims) {
+        Object rolesClaim = claims.get("roles");
+
+        if (!(rolesClaim instanceof List<?> roles)) {
+            return List.of();
+        }
+
+        return roles.stream()
+                .map(String::valueOf)
+                .toList();
+    }
+
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)
+                .requireIssuer(issuer)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

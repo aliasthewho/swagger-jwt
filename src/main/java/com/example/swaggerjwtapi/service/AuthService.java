@@ -1,5 +1,6 @@
 package com.example.swaggerjwtapi.service;
 
+import com.example.swaggerjwtapi.dto.CurrentUserResponse;
 import com.example.swaggerjwtapi.dto.LoginRequest;
 import com.example.swaggerjwtapi.dto.LoginResponse;
 import com.example.swaggerjwtapi.model.AppUser;
@@ -33,23 +34,21 @@ public class AuthService implements UserDetailsService {
         AppUser user = userRepository.findByUsername(request.username())
                 .orElseThrow(this::invalidCredentials);
 
-        if (!passwordEncoder.matches(
-                request.password(),
-                user.password()
-        )) {
+        if (!passwordEncoder.matches(request.password(), user.password())) {
             throw invalidCredentials();
         }
 
-        String accessToken = jwtService.generateToken(
-                user.username(),
-                user.roles()
-        );
+        String accessToken = jwtService.generateAccessToken(user);
 
         return new LoginResponse(
                 accessToken,
                 "Bearer ",
                 jwtService.getExpirationSeconds()
         );
+    }
+
+    public CurrentUserResponse getCurrentUser(String accessToken) {
+        return jwtService.extractCurrentUser(accessToken);
     }
 
     @Override
