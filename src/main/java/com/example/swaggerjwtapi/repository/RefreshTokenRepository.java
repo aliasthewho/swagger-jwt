@@ -19,4 +19,12 @@ public class RefreshTokenRepository {
     public Optional<RefreshTokenSession> consume(String tokenId) {
         return Optional.ofNullable(sessions.remove(tokenId));
     }
+
+    public void revoke(String tokenId) {
+        sessions.remove(tokenId);
+    }
+
+    public boolean isRevoked(String tokenId) {
+        return !sessions.containsKey(tokenId);
+    }
 }

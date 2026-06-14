@@ -1,9 +1,6 @@
 package com.example.swaggerjwtapi.controller;
 
-import com.example.swaggerjwtapi.dto.CurrentUserResponse;
-import com.example.swaggerjwtapi.dto.LoginRequest;
-import com.example.swaggerjwtapi.dto.LoginResponse;
-import com.example.swaggerjwtapi.dto.RefreshTokenRequest;
+import com.example.swaggerjwtapi.dto.*;
 import com.example.swaggerjwtapi.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -44,5 +41,10 @@ public class AuthController {
                    BEARER_PREFIX.length()
            );
            return authService.getCurrentUser(accessToken);
+    }
+
+    @PostMapping("/logout")
+    public void logout(@Valid @RequestBody LogoutRequest request) {
+        authService.logout(request);
     }
 }

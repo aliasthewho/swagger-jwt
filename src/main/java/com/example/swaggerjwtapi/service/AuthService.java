@@ -5,6 +5,7 @@ import com.example.swaggerjwtapi.model.AppUser;
 import com.example.swaggerjwtapi.model.RefreshTokenPayload;
 import com.example.swaggerjwtapi.repository.RefreshTokenRepository;
 import com.example.swaggerjwtapi.repository.UserRepository;
+import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,10 @@ public class AuthService implements UserDetailsService {
     public LoginResponse refresh(RefreshTokenRequest request) {
         RefreshTokenPayload payload =
                 jwtService.extractRefreshToken(request.refreshToken());
+
+        if (refreshTokenRepository.isRevoked(payload.tokenId())) {
+            throw new JwtException("refresh token is invalid or revoked");
+        }
 
         RefreshTokenSession session = refreshTokenRepository
                 .consume(payload.tokenId())
@@ -80,6 +85,13 @@ public class AuthService implements UserDetailsService {
                 .password(user.password())
                 .authorities(user.roles().toArray(String[]::new))
                 .build();
+    }
+
+    public void logout(LogoutRequest request) {
+        RefreshTokenPayload payload =
+                jwtService.extractRefreshToken(request.refreshToken());
+
+        refreshTokenRepository.revoke(payload.tokenId());
     }
 
     private LoginResponse issueTokenPair(AppUser user) {
