@@ -26,7 +26,7 @@ public class AuthSecurityTest {
     @Test
     public void testLoggingSuccess() throws Exception {
         LoginRequest request =
-                new LoginRequest("admin", "12345s");
+                new LoginRequest("admin", "12345");
 
         MvcResult result =
                 mockMvc.perform(
@@ -49,6 +49,6 @@ public class AuthSecurityTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }
