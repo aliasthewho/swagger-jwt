@@ -13,6 +13,11 @@ spring:
 app:
   jwt:
     issuer: swagger-jwt-api
-    secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+    secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
     expiration-ms: 3600000
     refresh-expiration-ms: 604800000
+
+logging:
+  level:
+    root: WARN
+    com.example.swaggerjwtapi: DEBUG

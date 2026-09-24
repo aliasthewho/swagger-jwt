@@ -1,0 +1,23 @@
+server:
+  port: 8080
+  ssl:
+    enabled: false
+
+security:
+  require-https: true
+
+spring:
+  application:
+    name: swagger-jwt-api
+
+app:
+  jwt:
+    issuer: swagger-jwt-api
+    secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    expiration-ms: 3600000
+    refresh-expiration-ms: 604800000
+
+logging:
+  level:
+    root: WARN
+    com.example.swaggerjwtapi: DEBUG
