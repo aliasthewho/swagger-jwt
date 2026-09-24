@@ -23,6 +23,7 @@ public class AuthService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
+    private final LoginRateLimiter loginRateLimiter;
 
     public LoginResponse refresh(RefreshTokenRequest request) {
         RefreshTokenPayload payload =
@@ -50,16 +51,22 @@ public class AuthService implements UserDetailsService {
     public AuthService(
             UserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
+            LoginRateLimiter loginRateLimiter,
             JwtService jwtService,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtService = jwtService;
+        this.loginRateLimiter = loginRateLimiter;
         this.passwordEncoder = passwordEncoder;
     }
 
     public LoginResponse login(LoginRequest request) {
+        if (!loginRateLimiter.allowLogin(request.username())) {
+            throw new JwtException("Too many requests. Try again");
+        }
+
         AppUser user = userRepository.findByUsername(request.username())
                 .orElseThrow(this::invalidCredentials);
 

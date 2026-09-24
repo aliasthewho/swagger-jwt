@@ -1,5 +1,6 @@
 package com.example.swaggerjwtapi.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -18,7 +19,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            @Value("${security.require-https:false}") boolean requireHttps
     ) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -49,7 +51,19 @@ public class SecurityConfig {
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
                 );
+
+        if (requireHttps) {
+            http.requiresChannel(channel -> channel
+                    .anyRequest().requiresSecure()
+            );
+        }
 
         return http.build();
     }

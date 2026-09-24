@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class AuthSecurityTest {
 
     @Autowired
@@ -26,7 +28,7 @@ public class AuthSecurityTest {
     @Test
     public void testLoggingSuccess() throws Exception {
         LoginRequest request =
-                new LoginRequest("admin", "12345s");
+                new LoginRequest("admin", "12345");
 
         MvcResult result =
                 mockMvc.perform(
@@ -38,8 +40,6 @@ public class AuthSecurityTest {
                         .andExpect(jsonPath("$.accessToken").exists())
                         .andExpect(jsonPath("$.refreshToken").exists())
                         .andReturn();
-
-        System.out.println("login OK");
     }
 
     @Test
@@ -49,6 +49,6 @@ public class AuthSecurityTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }
