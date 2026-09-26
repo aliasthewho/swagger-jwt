@@ -57,6 +57,15 @@ public class SecurityConfig {
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31536000)
                         )
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives(
+                                        "default-src 'self'; "
+                                                + "script-src 'self' 'unsafe-inline'; "
+                                                + "style-src 'self' 'unsafe-inline'; "
+                                                + "img-src 'self' data:; "
+                                                + "frame-ancestors 'none'"
+                                )
+                        )
                 );
 
         if (requireHttps) {
