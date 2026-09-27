@@ -55,7 +55,11 @@ Swagger UI: `http://localhost:8080/swagger-ui.html` — OpenAPI spec: `/v3/api-d
 `LoginRateLimiter` uses Bucket4j (token-bucket, 5 attempts / 15 min) keyed per-username in an in-memory map; `AuthService.login` checks it before verifying credentials and throws `JwtException` when exceeded.
 
 ### Configuration profiles
-`security.require-https` (bound in `SecurityConfig.securityFilterChain`) toggles `http.requiresChannel(...).requiresSecure()`, which redirects HTTP→HTTPS. The `Strict-Transport-Security` header is configured unconditionally but is only written by Spring Security on requests it sees as secure (`request.isSecure()`) — it is absent on plain HTTP responses regardless of `require-https` (verified: `MockMvc.perform(post(...))` without `.secure(true)` returns no `Strict-Transport-Security` header). Profiles under `src/main/resources/`:
+`security.require-https` (bound in `SecurityConfig.securityFilterChain`) toggles `http.requiresChannel(...).requiresSecure()`, which redirects HTTP→HTTPS. The `Strict-Transport-Security` header is configured unconditionally but is only written by Spring Security on requests it sees as secure (`request.isSecure()`) — it is absent on plain HTTP responses regardless of `require-https` (verified: `MockMvc.perform(post(...))` without `.secure(true)` returns no `Strict-Transport-Security` header).
+
+`SecurityConfig` also sets a `Content-Security-Policy` header (`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'`). `'unsafe-inline'` is required because `src/main/resources/static/docs/index.html` and `login.html` use inline `<script>`/`<style>` blocks (no server-side templating to inject per-request nonces); `img-src` allows `data:` because the bundled `swagger-ui.css` (webjar `org.webjars:swagger-ui`) embeds an icon as a `data:image` URI.
+
+Profiles under `src/main/resources/`:
 - `application.yml` — default/local, `require-https: false`.
 - `application-dev.yml` — local dev, DEBUG logging for `com.example.swaggerjwtapi`.
 - `application-test.yml` — used by `@ActiveProfiles("test")` in most tests; `require-https: false`, fixed JWT secret (no env var) for reproducibility.
